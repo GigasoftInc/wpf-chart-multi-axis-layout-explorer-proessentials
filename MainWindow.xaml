@@ -1,0 +1,144 @@
+<Window x:Class="MultiAxisLayoutExplorer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:Gigasoft="clr-namespace:Gigasoft.ProEssentials;assembly=Gigasoft.ProEssentialsWpf"
+        mc:Ignorable="d"
+        Title="ProEssentials — Multi-Axis Layout Explorer"
+        Height="780" Width="1150"
+        MinHeight="520" MinWidth="750"
+        UseLayoutRounding="True"
+        Closing="Window_Closing">
+
+    <Window.Resources>
+        <!-- ── Dark theme colors ─────────────────────────────────────────── -->
+        <SolidColorBrush x:Key="DarkBg"     Color="#FF001A20"/>
+        <SolidColorBrush x:Key="DarkPanel"  Color="#FF002B35"/>
+        <SolidColorBrush x:Key="AccentCyan" Color="#FF00E5E5"/>
+        <SolidColorBrush x:Key="TextLight"  Color="#FFE0E0E0"/>
+
+        <!-- ── Standard button ───────────────────────────────────────────── -->
+        <Style x:Key="LayoutBtn" TargetType="Button">
+            <Setter Property="Background"      Value="#FF003D4D"/>
+            <Setter Property="Foreground"      Value="{StaticResource AccentCyan}"/>
+            <Setter Property="BorderBrush"     Value="{StaticResource AccentCyan}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontFamily"      Value="Consolas"/>
+            <Setter Property="FontSize"        Value="12"/>
+            <Setter Property="FontWeight"      Value="Bold"/>
+            <Setter Property="Padding"         Value="14,6"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FF005566"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── Active / selected layout button ──────────────────────────── -->
+        <Style x:Key="LayoutBtnActive" TargetType="Button"
+               BasedOn="{StaticResource LayoutBtn}">
+            <Setter Property="Background"  Value="#FF004D60"/>
+            <Setter Property="BorderBrush" Value="#FF00FFFF"/>
+            <Setter Property="Foreground"  Value="#FF00FFFF"/>
+        </Style>
+
+        <!-- ── Toggle ON (Pressure → Right Y) ───────────────────────────── -->
+        <Style x:Key="ToggleOnBtn" TargetType="Button"
+               BasedOn="{StaticResource LayoutBtn}">
+            <Setter Property="Background"  Value="#FF004020"/>
+            <Setter Property="BorderBrush" Value="#FFFFD200"/>
+            <Setter Property="Foreground"  Value="#FFFFD200"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource DarkBg}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>  <!-- toolbar -->
+            <RowDefinition Height="*"/>     <!-- chart   -->
+        </Grid.RowDefinitions>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- Row 0 — Toolbar                                                 -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="0"
+                Background="{StaticResource DarkPanel}"
+                BorderBrush="#FF003D4D"
+                BorderThickness="0,0,0,1"
+                Padding="10,8">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                <!-- Layout label -->
+                <TextBlock Text="AXIS LAYOUT:"
+                           Foreground="#FF808080"
+                           FontFamily="Consolas"
+                           FontSize="11"
+                           VerticalAlignment="Center"
+                           Margin="0,0,10,0"/>
+
+                <!-- 4 layout buttons -->
+                <Button x:Name="BtnSeparate"
+                        Style="{StaticResource LayoutBtnActive}"
+                        Content="⊟  All Separate"
+                        ToolTip="4 independent Y axes, one per series (Examples 012 / 103)"
+                        Click="BtnSeparate_Click"
+                        Margin="0,0,5,0"/>
+
+                <Button x:Name="BtnOverlapped"
+                        Style="{StaticResource LayoutBtn}"
+                        Content="⊞  All Overlapped"
+                        ToolTip="All 4 series share one Y region, each with its own scale (Example 103)"
+                        Click="BtnOverlapped_Click"
+                        Margin="0,0,5,0"/>
+
+                <Button x:Name="BtnSplit"
+                        Style="{StaticResource LayoutBtn}"
+                        Content="⊠  2 + 2 Split"
+                        ToolTip="Two overlapped groups stacked — HP+Torque above, Temp+Pressure below (Example 104)"
+                        Click="BtnSplit_Click"
+                        Margin="0,0,5,0"/>
+
+                <Button x:Name="BtnTwoPerAxis"
+                        Style="{StaticResource LayoutBtn}"
+                        Content="⊡  2 per Axis"
+                        ToolTip="Two axis sections, two series each (Example 013)"
+                        Click="BtnTwoPerAxis_Click"
+                        Margin="0,0,18,0"/>
+
+                <!-- Separator -->
+                <Border Width="1" Background="#FF003D4D" Margin="0,2,18,2"/>
+
+                <!-- Right-Y toggle -->
+                <Button x:Name="BtnRY"
+                        Style="{StaticResource LayoutBtn}"
+                        Content="⇄  Pressure → Right Y"
+                        ToolTip="Move Pressure (PSI) to the right Y axis in the current layout"
+                        Click="BtnRY_Click"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- Row 1 — Chart                                                   -->
+        <!-- Right-click for context menu · Left-drag to zoom               -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <Gigasoft:PesgoWpf x:Name="Pesgo1"
+                           Grid.Row="1"
+                           Loaded="Pesgo1_Loaded"/>
+    </Grid>
+
+</Window>
